@@ -1,47 +1,39 @@
-import { useContext, useState } from "react";
-import { CartContext } from "../context/CartContext";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useState } from "react";
+import { useCart } from "../context/CartContext";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 
 function Checkout() {
-    const { carrito, totalPrecio, vaciarCarrito } = useContext(CartContext);
+    const { carrito, totalPrecio, vaciarCarrito } = useCart();
 
+    const [nombre, setNombre] = useState("");
+    const [telefono, setTelefono] = useState("");
+    const [email, setEmail] = useState("");
     const [orderId, setOrderId] = useState(null);
-    const [form, setForm] = useState({
-        nombre: "",
-        telefono: "",
-        email: "",
-    });
 
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        });
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const orden = {
-            comprador: form,
+            comprador: { nombre, telefono, email },
             items: carrito,
             total: totalPrecio(),
-            fecha: serverTimestamp(),
+            fecha: new Date(),
         };
 
-        const ordenesRef = collection(db, "ordenes");
-
-        addDoc(ordenesRef, orden).then((doc) => {
-            setOrderId(doc.id);
+        try {
+            const docRef = await addDoc(collection(db, "ordenes"), orden);
+            setOrderId(docRef.id);
             vaciarCarrito();
-        });
+        } catch (error) {
+            console.error("Error al guardar orden:", error);
+        }
     };
 
     if (orderId) {
         return (
-            <div style={{ padding: "1rem" }}>
-                <h2>✅ ¡Gracias por tu compra!</h2>
+            <div>
+                <h2>¡Gracias por tu compra! 🎉</h2>
                 <p>
                     Tu número de orden es: <strong>{orderId}</strong>
                 </p>
@@ -50,8 +42,8 @@ function Checkout() {
     }
 
     return (
-        <div style={{ padding: "1rem" }}>
-            <h2>🧾 Finalizar compra</h2>
+        <div>
+            <h2>Finalizar compra</h2>
             <form
                 onSubmit={handleSubmit}
                 style={{
@@ -63,26 +55,23 @@ function Checkout() {
             >
                 <input
                     type="text"
-                    name="nombre"
-                    placeholder="Tu nombre"
-                    value={form.nombre}
-                    onChange={handleChange}
+                    placeholder="Nombre"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
                     required
                 />
                 <input
                     type="tel"
-                    name="telefono"
-                    placeholder="Tu teléfono"
-                    value={form.telefono}
-                    onChange={handleChange}
+                    placeholder="Teléfono"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value)}
                     required
                 />
                 <input
                     type="email"
-                    name="email"
-                    placeholder="Tu email"
-                    value={form.email}
-                    onChange={handleChange}
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                 />
                 <button type="submit">Confirmar compra</button>

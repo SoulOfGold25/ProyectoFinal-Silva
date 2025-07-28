@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import ItemCount from "./ItemCount";
+import { CartContext } from "../context/CartContext";
 
-function ItemDetail({ nombre, descripcion, precio, stock }) {
+function ItemDetail({ id, nombre, descripcion, precio, stock }) {
     const [agregado, setAgregado] = useState(false);
+    const { agregarAlCarrito } = useContext(CartContext); // ✅
 
     const handleAdd = (cantidad) => {
-        console.log(`Agregado al carrito: ${cantidad}`);
+        const item = {
+            id,
+            nombre,
+            precio,
+        };
+
+        agregarAlCarrito(item, cantidad); // ✅
         setAgregado(true);
     };
 

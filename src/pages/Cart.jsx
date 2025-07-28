@@ -1,44 +1,54 @@
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 
 function Cart() {
-    const { carrito, eliminarDelCarrito, vaciarCarrito, totalPrecio } =
-        useContext(CartContext);
+    const {
+        carrito,
+        eliminarDelCarrito,
+        vaciarCarrito,
+        totalUnidades,
+        totalPrecio,
+    } = useCart();
 
     if (carrito.length === 0) {
         return (
-            <div style={{ padding: "1rem" }}>
-                <h2>🛒 Tu carrito está vacío</h2>
-                <Link to="/">Volver al inicio</Link>
+            <div>
+                <h2>Tu carrito está vacío 🛒</h2>
+                <Link to="/">Volver al catálogo</Link>
             </div>
         );
     }
 
     return (
-        <div style={{ padding: "1rem" }}>
-            <h2>🛒 Carrito de compras</h2>
-            <ul>
-                {carrito.map((prod) => (
-                    <li key={prod.id} style={{ marginBottom: "10px" }}>
-                        <strong>{prod.nombre}</strong> — {prod.cantidad}{" "}
-                        unidad(es) — ${prod.precio * prod.cantidad}
-                        <button
-                            onClick={() => eliminarDelCarrito(prod.id)}
-                            style={{ marginLeft: "10px" }}
-                        >
+        <div>
+            <h2>Carrito de Compras</h2>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+                {carrito.map((item) => (
+                    <li
+                        key={item.id}
+                        style={{
+                            border: "1px solid #ccc",
+                            marginBottom: "10px",
+                            padding: "10px",
+                            borderRadius: "6px",
+                            background: "#fff",
+                        }}
+                    >
+                        <strong>{item.nombre}</strong> — {item.cantidad} x $
+                        {item.precio} = ${item.cantidad * item.precio}
+                        <br />
+                        <button onClick={() => eliminarDelCarrito(item.id)}>
                             Eliminar
                         </button>
                     </li>
                 ))}
             </ul>
-
-            <h3>Total: ${totalPrecio()}</h3>
-
+            <hr />
+            <p>Total de unidades: {totalUnidades()}</p>
+            <p>Total a pagar: ${totalPrecio()}</p>
             <button onClick={vaciarCarrito}>Vaciar carrito</button>
-            <br />
             <Link to="/checkout">
-                <button style={{ marginTop: "10px" }}>Finalizar compra</button>
+                <button>Finalizar compra</button>
             </Link>
         </div>
     );

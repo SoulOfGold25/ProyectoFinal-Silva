@@ -6,12 +6,23 @@ export const CartProvider = ({ children }) => {
     const [carrito, setCarrito] = useState([]);
 
     const agregarAlCarrito = (item, cantidad) => {
-        const existe = carrito.find((prod) => prod.id === item.id);
+        const productoEnCarrito = carrito.find((prod) => prod.id === item.id);
+        const cantidadExistente = productoEnCarrito
+            ? productoEnCarrito.cantidad
+            : 0;
+        const nuevaCantidad = cantidadExistente + cantidad;
 
-        if (existe) {
+        if (nuevaCantidad > item.stock) {
+            alert(
+                `No puedes agregar más de ${item.stock} unidades de ${item.nombre}.`
+            );
+            return;
+        }
+
+        if (productoEnCarrito) {
             const actualizado = carrito.map((prod) =>
                 prod.id === item.id
-                    ? { ...prod, cantidad: prod.cantidad + cantidad }
+                    ? { ...prod, cantidad: nuevaCantidad }
                     : prod
             );
             setCarrito(actualizado);
@@ -54,3 +65,7 @@ export const CartProvider = ({ children }) => {
         </CartContext.Provider>
     );
 };
+
+import { useContext } from "react";
+
+export const useCart = () => useContext(CartContext);
