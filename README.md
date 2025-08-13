@@ -1,12 +1,29 @@
-# React + Vite
+# 🛒 Proyecto Final - E-commerce React + Firebase
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el proyecto final del curso de **React**, desarrollado como una Single Page Application (SPA) que simula un e-commerce con listado de productos, filtrado por categorías, vista en detalle, carrito de compras y proceso de checkout con almacenamiento de órdenes en **Firebase Firestore**.
 
-Currently, two official plugins are available:
+## 🚀 Funcionalidades principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   **Listado dinámico de productos** desde Firestore.
+-   **Filtrado por categorías** usando React Router.
+-   **Vista en detalle** de cada producto con control de stock.
+-   **Carrito de compras global** con Context API.
+-   **Checkout** con formulario y creación de orden en Firestore.
+-   **Renderizado condicional** (loaders, mensajes de error, avisos de stock).
+-   **Diseño responsivo** básico con CSS.
 
-## Expanding the ESLint configuration
+## 🛠️ Tecnologías utilizadas
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+-   **React** (Vite)
+-   **React Router DOM**
+-   **Firebase Firestore**
+-   **Context API** para el manejo global de estado del carrito
+-   **CSS** para el estilado básico
+
+## 📦 Instalación y uso
+
+1. **Clonar el repositorio**
+    ```bash
+    git clone https://github.com/SoulOfGold25/ProyectoFinal-Silva
+    cd ProyectoFinal+Silva
+    ```

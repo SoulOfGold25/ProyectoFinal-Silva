@@ -1,34 +1,24 @@
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 
 function CartWidget() {
-    const { totalUnidades } = useContext(CartContext);
+    const { totalUnidades } = useCart(); // número, no función
 
     return (
-        <Link
-            to="/cart"
-            style={{
-                textDecoration: "none",
-                color: "white",
-                position: "relative",
-            }}
-        >
-            🛒
-            {totalUnidades() > 0 && (
+        <Link to="/cart" style={{ textDecoration: "none", color: "black" }}>
+            🛒 Carrito
+            {totalUnidades > 0 && (
                 <span
                     style={{
-                        position: "absolute",
-                        top: "-6px",
-                        right: "-10px",
                         backgroundColor: "red",
-                        borderRadius: "50%",
-                        padding: "2px 6px",
                         color: "white",
-                        fontSize: "0.75rem",
+                        borderRadius: "50%",
+                        padding: "2px 8px",
+                        marginLeft: "8px",
+                        fontSize: "0.9rem",
                     }}
                 >
-                    {totalUnidades()}
+                    {totalUnidades}
                 </span>
             )}
         </Link>

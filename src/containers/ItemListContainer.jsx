@@ -1,97 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { useCart } from "../context/CartContext";
+import ItemList from "../components/ItemList";
 
 function ItemListContainer({ saludo }) {
     const [productos, setProductos] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { categoriaId } = useParams(); // ✅
-    const { agregarAlCarrito } = useCart();
-
-    const handleAgregar = (item) => {
-        agregarAlCarrito(item, 1);
-    };
+    const { categoriaId } = useParams();
 
     useEffect(() => {
-        setLoading(true);
-
-        const productosRef = collection(db, "productos");
-
-        const consulta = categoriaId
-            ? query(productosRef, where("categoria", "==", categoriaId))
-            : productosRef;
-
-        getDocs(consulta)
-            .then((res) => {
-                const docs = res.docs.map((doc) => ({
-                    ...doc.data(),
-                    id: doc.id,
-                }));
-                console.log("🔥 Productos:", docs);
+        const fetchProductos = async () => {
+            try {
+                setLoading(true);
+                const ref = collection(db, "productos");
+                const q = categoriaId
+                    ? query(ref, where("categoria", "==", categoriaId))
+                    : ref;
+                const snap = await getDocs(q);
+                const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
                 setProductos(docs);
-            })
-            .catch((error) => {
-                console.error("❌ Error:", error);
+            } catch (e) {
+                console.error("Error cargando productos:", e);
                 setProductos([]);
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProductos();
     }, [categoriaId]);
 
     return (
-        <div style={{ padding: "1rem" }}>
+        <section style={{ padding: "1rem" }}>
             <h2>{saludo}</h2>
+
             {loading ? (
-                <div style={{ textAlign: "center", marginTop: "2rem" }}>
-                    <div className="spinner" />
-                    <p>Cargando productos...</p>
-                </div>
+                <p>Cargando productos…</p>
             ) : productos.length === 0 ? (
                 <div>
-                    <h2>Tu carrito está vacío 🛒</h2>
+                    <h3>No hay productos para mostrar</h3>
                     <Link to="/">Volver al catálogo</Link>
                 </div>
             ) : (
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fill, minmax(200px, 1fr))",
-                        gap: "16px",
-                    }}
-                >
-                    {productos.map((prod) => (
-                        <div
-                            key={prod.id}
-                            style={{
-                                border: "1px solid #ccc",
-                                borderRadius: "8px",
-                                padding: "16px",
-                                textAlign: "center",
-                                background: "#fafafa",
-                            }}
-                        >
-                            <h3>{prod.nombre}</h3>
-                            <p>${prod.precio}</p>
-                            <p>
-                                <small>Stock: {prod.stock}</small>
-                            </p>
-
-                            {prod.stock === 0 ? (
-                                <p style={{ color: "red" }}>
-                                    ⚠ Producto sin stock
-                                </p>
-                            ) : (
-                                <button onClick={() => handleAgregar(prod)}>
-                                    Agregar al carrito
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                <ItemList productos={productos} />
             )}
-        </div>
+        </section>
     );
 }
 

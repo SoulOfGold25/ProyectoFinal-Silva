@@ -1,83 +1,126 @@
+// src/pages/Checkout.jsx
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { Link, useNavigate } from "react-router-dom";
 
-function Checkout() {
+const fmt = new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+});
+
+export default function Checkout() {
     const { carrito, totalPrecio, vaciarCarrito } = useCart();
+    const navigate = useNavigate();
 
-    const [nombre, setNombre] = useState("");
-    const [telefono, setTelefono] = useState("");
-    const [email, setEmail] = useState("");
+    const [form, setForm] = useState({ nombre: "", telefono: "", email: "" });
     const [orderId, setOrderId] = useState(null);
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const orden = {
-            comprador: { nombre, telefono, email },
-            items: carrito,
-            total: totalPrecio(),
-            fecha: new Date(),
-        };
-
-        try {
-            const docRef = await addDoc(collection(db, "ordenes"), orden);
-            setOrderId(docRef.id);
-            vaciarCarrito();
-        } catch (error) {
-            console.error("Error al guardar orden:", error);
-        }
-    };
-
-    if (orderId) {
+    // Si el carrito está vacío, vuelve al catálogo
+    if (carrito.length === 0 && !orderId) {
         return (
-            <div>
-                <h2>¡Gracias por tu compra! 🎉</h2>
-                <p>
-                    Tu número de orden es: <strong>{orderId}</strong>
-                </p>
+            <div style={{ padding: "1rem" }}>
+                <h2>No tienes productos en el carrito</h2>
+                <button onClick={() => navigate("/")}>Volver al inicio</button>
             </div>
         );
     }
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm((f) => ({ ...f, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSending(true);
+        setError(null);
+
+        try {
+            // armamos la orden:
+            const orden = {
+                comprador: form,
+                items: carrito.map((p) => ({
+                    id: p.id,
+                    nombre: p.nombre,
+                    precio: p.precio,
+                    cantidad: p.cantidad,
+                })),
+                total: totalPrecio,
+                fecha: serverTimestamp(),
+            };
+
+            const ref = collection(db, "ordenes");
+            const doc = await addDoc(ref, orden);
+            setOrderId(doc.id);
+            vaciarCarrito();
+        } catch (err) {
+            console.error(err);
+            setError(
+                "Ocurrió un error al procesar tu orden. Intenta nuevamente."
+            );
+        } finally {
+            setSending(false);
+        }
+    };
+
+    // Orden creada: pantalla de confirmación
+    if (orderId) {
+        return (
+            <div style={{ padding: "1rem" }}>
+                <h2>✅ ¡Gracias por tu compra!</h2>
+                <p>
+                    Tu número de orden es: <strong>{orderId}</strong>
+                </p>
+                <Link to="/">Volver al inicio</Link>
+            </div>
+        );
+    }
+
+    // Formulario de checkout
     return (
-        <div>
-            <h2>Finalizar compra</h2>
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    maxWidth: "400px",
-                }}
-            >
+        <div style={{ padding: "1rem", maxWidth: 480 }}>
+            <h2>🧾 Finalizar compra</h2>
+            <p>
+                Total a pagar: <strong>{fmt.format(totalPrecio)}</strong>
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
                 <input
                     type="text"
-                    placeholder="Nombre"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
+                    name="nombre"
+                    placeholder="Tu nombre"
+                    value={form.nombre}
+                    onChange={handleChange}
                     required
                 />
                 <input
                     type="tel"
-                    placeholder="Teléfono"
-                    value={telefono}
-                    onChange={(e) => setTelefono(e.target.value)}
+                    name="telefono"
+                    placeholder="Tu teléfono"
+                    value={form.telefono}
+                    onChange={handleChange}
                     required
                 />
                 <input
                     type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    placeholder="Tu email"
+                    value={form.email}
+                    onChange={handleChange}
                     required
                 />
-                <button type="submit">Confirmar compra</button>
+
+                <button type="submit" disabled={sending}>
+                    {sending ? "Procesando..." : "Confirmar compra"}
+                </button>
+
+                {error && <p style={{ color: "crimson" }}>{error}</p>}
             </form>
         </div>
     );
 }
-
-export default Checkout;
